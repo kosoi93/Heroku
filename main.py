@@ -1,74 +1,48 @@
-from flask import Flask, render_template_string, request
+from flask import Flask, request
 import os
 
 app = Flask(__name__)
 
-# 1. Главная страница (как и раньше)
-@app.route("/")
-def index():
-    return "STEPAN"
-
-# 2. Страница «Приветствие» (с передачей параметра)
-@app.route("/hello/<name>")
-def hello(name):
-    return f"Привет, {name}!"
-
-# 3. Пример простой HTML-страницы с использованием render_template_string
-# (в реальном проекте лучше использовать render_template и отдельные .html-файлы)
-@app.route("/info")
-def info():
-    html_content = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Info Page</title>
-    </head>
-    <body>
-        <h1>Добро пожаловать на информационную страницу!</h1>
-        <p>Здесь мы можем разместить какую-то информацию о нашем проекте.</p>
-        <a href="/">На главную</a>
-    </body>
-    </html>
-    """
-    return render_template_string(html_content)
-
-# 4. Страница с формой (GET и POST)
-@app.route("/form", methods=["GET", "POST"])
-def form_example():
-    if request.method == "POST":
-        user_input = request.form.get("text_input", "")
-        return f"Вы ввели: {user_input}"
-    else:
-        # При GET-запросе показываем HTML-форму
-        form_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Форма ввода</title>
-        </head>
-        <body>
-            <h1>Введите что-нибудь:</h1>
-            <form method="post" action="/form">
-                <input type="text" name="text_input" placeholder="Ваш текст" />
-                <button type="submit">Отправить</button>
-            </form>
-            <a href="/">На главную</a>
-        </body>
-        </html>
-        """
-        return render_template_string(form_html)
-
-# 5. Немного динамического контента: счётчик посещений
-# Для упрощённого хранения счётчика используем глобальную переменную
+# Глобальная переменная для счётчика
 visits = 0
 
+# Главная страница
+@app.route("/")
+def index():
+    return """
+    <h1>STEPAN</h1>
+    <p>Добро пожаловать на наш сайт!</p>
+    <p>Вот пара новых страничек для теста:</p>
+    <ul>
+      <li><a href="/counter">Счётчик посещений</a></li>
+      <li><a href="/form">Форма ввода</a></li>
+    </ul>
+    """
+
+# Счётчик посещений
 @app.route("/counter")
 def counter():
     global visits
     visits += 1
-    return f"Эту страницу просмотрели {visits} раз(а)."
+    return f"Страницу /counter открыли уже {visits} раз(а)."
 
-# Запуск приложения
+# Простая HTML-форма
+@app.route("/form", methods=["GET", "POST"])
+def form_example():
+    if request.method == "POST":
+        user_input = request.form.get("text_input", "")
+        return f"<h3>Вы ввели: {user_input}</h3><p><a href='/form'>Вернуться назад</a></p>"
+    else:
+        # При GET-запросе отдадим форму
+        return """
+        <h3>Введите любой текст:</h3>
+        <form method="post" action="/form">
+            <input type="text" name="text_input" placeholder="Напишите что-нибудь" />
+            <button type="submit">Отправить</button>
+        </form>
+        <p><a href="/">На главную</a></p>
+        """
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
